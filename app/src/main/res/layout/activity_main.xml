@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#423c6a"
+    android:orientation="vertical"
+    tools:context=".MainActivity">
+
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:fontFamily="sans-serif-black"
+            android:text="TimeDown"
+            android:textColor="@color/white"
+            android:textSize="25sp" />
+    </androidx.appcompat.widget.Toolbar>
+
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/toolbar">
+
+        <LinearLayout
+            android:id="@+id/main_counter_screen"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:orientation="vertical"
+            android:visibility="invisible"
+            tools:visibility="visible">
+
+
+            <FrameLayout
+                android:id="@+id/countDown_frame"
+                android:layout_width="360dp"
+                android:layout_height="331dp"
+                android:layout_centerHorizontal="true"
+                android:layout_gravity="center"
+                android:background="@drawable/progressbar_background">
+
+                <RelativeLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center">
+
+                    <TextView
+                        android:id="@+id/countDown_text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerInParent="true"
+                        android:layout_gravity="center"
+                        android:gravity="center"
+                        android:text="03:12։06"
+                        android:textColor="@color/white"
+                        android:textSize="55sp" />
+
+                </RelativeLayout>
+
+                <!-- <me.zhanghai.android.materialprogressbar.MaterialProgressBar
+                     android:id="@+id/progress"
+                     android:layout_width="360dp"
+                     android:layout_height="331dp"
+                     android:layout_gravity="center"
+                     android:indeterminate="true"
+                     android:indeterminateDrawable="@drawable/progressbar_background"
+                     android:indeterminateTint="#f14668"
+                     android:minWidth="350dp"
+                     android:minHeight="320dp" />-->
+
+                <ImageButton
+                    android:id="@+id/time_change_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/countDown_text"
+                    android:layout_centerHorizontal="true"
+                    android:layout_marginBottom="60dp"
+                    android:layout_gravity="center|bottom"
+                    android:background="@color/transparent"
+                    android:src="@drawable/ic_timer" />
+            </FrameLayout>
+
+            <RelativeLayout
+                android:id="@+id/buttonsLayout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="45dp">
+
+                <android.widget.Button
+                    android:id="@+id/start_pause_button"
+                    android:layout_width="190dp"
+                    android:layout_height="60dp"
+                    android:layout_centerHorizontal="true"
+                    android:layout_gravity="center"
+                    android:layout_marginStart="20dp"
+                    android:background="@drawable/button_background"
+                    android:text="START"
+                    android:textColor="@color/white"
+                    android:textSize="25sp" />
+
+                <android.widget.ImageButton
+                    android:id="@+id/reset_button"
+                    android:layout_width="90dp"
+                    android:layout_height="40dp"
+                    android:layout_below="@+id/start_pause_button"
+                    android:layout_centerHorizontal="true"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/button_background"
+                    android:src="@drawable/ic_replay"
+                    android:visibility="invisible"
+                    tools:visibility="visible" />
+
+            </RelativeLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/picker_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:orientation="vertical"
+            android:visibility="visible"
+            tools:visibility="invisible">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <!--<NumberPicker
+                    android:id="@+id/hour_number_picker"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerInParent="true"
+                    android:layout_gravity="center"
+                    android:theme="@style/NumberPickerTheme"/> -->
+
+
+                <NumberPicker
+                    android:id="@+id/hour_number_picker"
+                    android:layout_width="70dp"
+                    android:layout_height="wrap_content"
+                    android:layout_centerInParent="true"
+                    android:layout_gravity="center"
+                    android:layout_marginEnd="5dp"
+                    android:theme="@style/NumberPickerTheme" />
+
+                <NumberPicker
+                    android:id="@+id/minute_number_picker"
+                    android:layout_width="70dp"
+                    android:layout_height="wrap_content"
+                    android:layout_centerInParent="true"
+                    android:layout_gravity="center"
+                    android:layout_marginEnd="5dp"
+                    android:theme="@style/NumberPickerTheme" />
+
+                <NumberPicker
+                    android:id="@+id/second_number_picker"
+                    android:layout_width="70dp"
+                    android:layout_height="wrap_content"
+                    android:layout_centerInParent="true"
+                    android:layout_gravity="center"
+                    android:layout_marginStart="5dp"
+                    android:theme="@style/NumberPickerTheme" />
+
+            </LinearLayout>
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/confirm_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="15dp"
+                android:backgroundTint="#f14668"
+                android:src="@drawable/ic_check"
+                app:borderWidth="0dp"
+                app:tint="@color/white" />
+        </LinearLayout>
+    </RelativeLayout>
+
+
+</RelativeLayout>
+
+
