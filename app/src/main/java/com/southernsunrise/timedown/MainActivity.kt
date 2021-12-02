@@ -47,7 +47,7 @@ class MainActivity() : AppCompatActivity() {
         nPickerSecond.minValue = 0
         nPickerSecond.maxValue = 59
 
-        // b
+        // button which will take numbers from number picker and give a value to timeLeftInMillis
         confirmButton.setOnClickListener {
             findViewById<LinearLayout>(R.id.main_counter_screen).visibility = View.VISIBLE
             findViewById<LinearLayout>(R.id.picker_layout).visibility = View.INVISIBLE
