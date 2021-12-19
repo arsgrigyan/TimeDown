@@ -1,7 +1,13 @@
 package com.southernsunrise.timedown
 
+import android.app.AlarmManager
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.pm.ActivityInfo
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.CountDownTimer
@@ -34,21 +40,34 @@ class MainActivity() : AppCompatActivity() {
     lateinit var progressBar: ProgressBar
     var timerRunning: Boolean = false
     var alarmPlaying: Boolean = false
-    private var mainContainerVisible: Boolean = false
+    private var mainCounterScreenVisible: Boolean = false
     private var pickerVisible: Boolean = true
-    var timeLeftInMillis: Long = 0
     var wholeTimerValueInMillis: Long = 0
-    lateinit var alarm: MediaPlayer
+    var timeLeftInMillis: Long = wholeTimerValueInMillis
+    lateinit var alarmSound: MediaPlayer
+
+    lateinit var alarmManager: AlarmManager
+    lateinit var pendingIntent: PendingIntent
 
 
+    @RequiresApi(Build.VERSION_CODES.N)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        this.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         val toolbar: androidx.appcompat.widget.Toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
         supportActionBar?.title = null
 
-        progressBar = findViewById<ProgressBar>(R.id.progress)
+
+        //giving timLeftInMillis already saved value after closing the app last time
+        val sharedPrefs: SharedPreferences =
+            getSharedPreferences("shared_pref", MODE_PRIVATE)
+        timeLeftInMillis = sharedPrefs.getLong("timeLeftInMillis", 0)
+
+
+        createNotificationChannel()
+        progressBar = findViewById(R.id.progress)
         progressBar.progress = 100
 
         nPickerHour = findViewById(R.id.hour_number_picker)
@@ -70,7 +89,7 @@ class MainActivity() : AppCompatActivity() {
         confirmButton.setOnClickListener {
             if ((nPickerHour.value != nPickerHour.minValue) || (nPickerMinute.value != nPickerMinute.minValue) || (nPickerSecond.value != nPickerSecond.minValue)) {
                 findViewById<LinearLayout>(R.id.main_counter_screen).visibility = View.VISIBLE
-                mainContainerVisible = true
+                mainCounterScreenVisible = true
                 findViewById<LinearLayout>(R.id.picker_layout).visibility = View.INVISIBLE
                 pickerVisible = false
                 progressBar.progress = 100
@@ -78,6 +97,8 @@ class MainActivity() : AppCompatActivity() {
                     ((nPickerHour.value * 3600000) + (nPickerMinute.value * 60000) + nPickerSecond.value * 1000).toLong()
                 timeLeftInMillis = wholeTimerValueInMillis
                 updateCountDownText(timeLeftInMillis)
+                mainCounterScreenVisible = true
+                pickerVisible = false
             } else {
                 Toast.makeText(this, "Choose valid time", Toast.LENGTH_SHORT).show()
             }
@@ -89,9 +110,12 @@ class MainActivity() : AppCompatActivity() {
                 countDownTimer.cancel()
                 timerRunning = false
                 startPauseButton.text = "START"
+                mainCounterScreenVisible = false
+                pickerVisible = true
+                cancelAlarm()
             }
             findViewById<LinearLayout>(R.id.main_counter_screen).visibility = View.INVISIBLE
-            mainContainerVisible = false
+            mainCounterScreenVisible = false
             findViewById<LinearLayout>(R.id.picker_layout).visibility = View.VISIBLE
             pickerVisible = true
             resetButton.visibility = View.INVISIBLE
@@ -106,43 +130,54 @@ class MainActivity() : AppCompatActivity() {
 
 
         startPauseButton.setOnClickListener {
+            resetButton.setOnClickListener {
+
+                countDownTimer.cancel()
+                cancelAlarm()
+                timerRunning = false
+
+                resetButton.visibility = View.INVISIBLE
+                startPauseButton.text = "START"
+                progressBar.progress = 100
+                timeLeftInMillis = wholeTimerValueInMillis
+                updateCountDownText(timeLeftInMillis)
+            }
 
             if (timerRunning) {
                 countDownTimer.cancel()
                 timerRunning = false
                 startPauseButton.text = "START"
+                cancelAlarm()
             } else {
+                startTimer()
+                setAlarm()
                 startPauseButton.text = "PAUSE"
                 timerRunning = true
-                startTimer()
                 resetButton.visibility = View.VISIBLE
 
             }
 
-        }
 
-        // button which will reset timer value stop alarm and update countdown textview
-        resetButton.setOnClickListener {
-            if (timerRunning) {
-                countDownTimer.cancel()
-            } else if (alarmPlaying) {
-                alarm.stop()
-                startPauseButton.visibility = View.VISIBLE
-                timeChangeButton.visibility = View.VISIBLE
-                resetButton.setImageResource(R.drawable.ic_replay)
-                alarmPlaying = false
-            }
-
-            resetButton.visibility = View.INVISIBLE
-            startPauseButton.text = "START"
-            timerRunning = false
-            progressBar.progress = 100
-            timeLeftInMillis = wholeTimerValueInMillis
-            updateCountDownText(timeLeftInMillis)
         }
 
         updateCountDownText(timeLeftInMillis)
 
+
+    }
+
+    // creating the notification channel
+    private fun createNotificationChannel() {
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val name: CharSequence = "TimeDownReminderChannel"
+            val description = "Timer finished"
+            val importance: Int = NotificationManager.IMPORTANCE_HIGH
+            val channel = NotificationChannel("TimeDown", name, importance)
+            channel.description = description
+
+            val notificationManager = getSystemService(NotificationManager::class.java)
+            notificationManager.createNotificationChannel(channel)
+        }
 
     }
 
@@ -166,6 +201,31 @@ class MainActivity() : AppCompatActivity() {
         )
     }
 
+    // method for setting alarm to get notification when countDownTimer is finished
+    private fun setAlarm() {
+
+        alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+
+        val intent = Intent(this, AlarmReceiver::class.java)
+        pendingIntent = PendingIntent.getBroadcast(this, 0, intent, 0)
+        alarmManager.setExact(
+            AlarmManager.RTC_WAKEUP,
+            System.currentTimeMillis() + timeLeftInMillis,
+            pendingIntent
+        )
+
+    }
+
+    // method to cancel the alarm
+    private fun cancelAlarm() {
+        val intent = Intent(this, AlarmReceiver::class.java)
+        pendingIntent = PendingIntent.getBroadcast(this, 0, intent, 0)
+        if (alarmManager == null) {
+            alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        }
+        alarmManager.cancel(pendingIntent)
+    }
+
     private fun startTimer() {
         countDownTimer = object : CountDownTimer(timeLeftInMillis, 1000) {
 
@@ -175,23 +235,43 @@ class MainActivity() : AppCompatActivity() {
                 timeLeftInMillis = millisUntilFinished
                 updateProgressBar()
                 updateCountDownText(timeLeftInMillis)
-
             }
 
+            @RequiresApi(Build.VERSION_CODES.N)
             override fun onFinish() {
-                alarm = MediaPlayer.create(
+
+                // playing audio for alarm when countDownTimer is finished
+                alarmSound = MediaPlayer.create(
                     baseContext,
                     R.raw.alarmsound
                 )
-                alarm.start()
+                alarmSound.start()
+                alarmSound.isLooping = true
+
+
+                alarmPlaying = true
+                timerRunning = false
                 progressBar.progress = 0
                 startPauseButton.visibility = View.INVISIBLE
-                timerRunning = false
-                alarmPlaying = true
-                startPauseButton.text = "START"
-                alarm.isLooping = true
                 timeChangeButton.visibility = View.INVISIBLE
                 resetButton.setImageResource(R.drawable.ic_stop)
+                resetButton.visibility = View.VISIBLE
+
+                // setting onCLickListener on resetButton when countDownTimer is finished
+                resetButton.setOnClickListener {
+                    alarmSound.stop()
+                    startPauseButton.visibility = View.VISIBLE
+                    timeChangeButton.visibility = View.VISIBLE
+                    resetButton.visibility = View.INVISIBLE
+                    resetButton.setImageResource(R.drawable.ic_replay)
+                    timeLeftInMillis = wholeTimerValueInMillis
+                    updateCountDownText(wholeTimerValueInMillis)
+                    startPauseButton.text = "START"
+                    updateProgressBar()
+                    alarmPlaying = false
+                    timerRunning = false
+
+                }
 
 
             }
@@ -200,151 +280,71 @@ class MainActivity() : AppCompatActivity() {
         countDownTimer.start()
     }
 
-
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.menu, menu)
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when (item.itemId) {
-            R.id.about -> {
-                if (timerRunning || alarmPlaying) {
-
-                } else {
-                    val intent = Intent(this, AboutActivity::class.java)
-                    startActivity(intent)
-                }
-
-            }
-        }
-        return super.onOptionsItemSelected(item)
-    }
-
-    // saving activity state with shared preferences onStop
+    // saving necessary variables when app is stopped
     override fun onStop() {
         super.onStop()
-        val sharedPrefs: SharedPreferences = getSharedPreferences("save_state", 0)
+        val sharedPrefs: SharedPreferences =
+            getSharedPreferences("shared_pref", MODE_PRIVATE)
         val editor: SharedPreferences.Editor = sharedPrefs.edit()
-        if (alarmPlaying) {
-            timeLeftInMillis = wholeTimerValueInMillis
-        }
+        editor.putBoolean("mainCounterScreenVisible", mainCounterScreenVisible)
+        editor.putBoolean("pickerVisible", pickerVisible)
         editor.putLong("wholeTimerValueInMillis", wholeTimerValueInMillis)
         editor.putBoolean("timerRunning", timerRunning)
         editor.putLong("timeLeftInMillis", timeLeftInMillis)
         editor.putInt("hourPicker", nPickerHour.value)
         editor.putInt("minutePicker", nPickerMinute.value)
         editor.putInt("secondPicker", nPickerSecond.value)
-        editor.putBoolean("mainContainerVisible", mainContainerVisible)
-        editor.putBoolean("pickerVisible", pickerVisible)
         editor.putBoolean("alarmPlaying", alarmPlaying)
-        editor.putBoolean("resetButtonVisible", resetButton.isVisible)
         editor.apply()
     }
 
-    @RequiresApi(Build.VERSION_CODES.N)
+    // assigning saved values to corresponding variables when app is resumed
     override fun onResume() {
         super.onResume()
-        val sharedPrefs: SharedPreferences = getSharedPreferences("save_state", 0)
+        val sharedPrefs: SharedPreferences =
+            getSharedPreferences("shared_pref", MODE_PRIVATE)
+        mainCounterScreenVisible =
+            sharedPrefs.getBoolean("mainContainerVisible", mainCounterScreenVisible)
+        pickerVisible = sharedPrefs.getBoolean("pickerVisible", pickerVisible)
         wholeTimerValueInMillis = sharedPrefs.getLong("wholeTimerValueInMillis", 0)
-        timerRunning = sharedPrefs.getBoolean("timerRunning", false)
+        timerRunning = sharedPrefs.getBoolean("timerRunning", timerRunning)
         timeLeftInMillis = sharedPrefs.getLong("timeLeftInMillis", 0)
         nPickerHour.value = sharedPrefs.getInt("hourPicker", 0)
         nPickerMinute.value = sharedPrefs.getInt("minutePicker", 0)
         nPickerSecond.value = sharedPrefs.getInt("secondPicker", 0)
-        mainContainerVisible = sharedPrefs.getBoolean("mainContainerVisible", false)
-        pickerVisible = sharedPrefs.getBoolean("pickerVisible", false)
-        alarmPlaying = sharedPrefs.getBoolean("alarmPlaying", false)
-        alarmPlaying = sharedPrefs.getBoolean("alarmPlaying", false)
+        alarmPlaying = sharedPrefs.getBoolean("alarmPlaying", alarmPlaying)
 
-        resetButton.isVisible = sharedPrefs.getBoolean("resetButtonVisible", false)
-        updateCountDownText(timeLeftInMillis)
-        if (mainContainerVisible) {
+        // changing mainContainer and picker visibilities
+        if (mainCounterScreenVisible) {
             findViewById<LinearLayout>(R.id.main_counter_screen).visibility = View.VISIBLE
             findViewById<LinearLayout>(R.id.picker_layout).visibility = View.INVISIBLE
-            updateProgressBar()
-        }
-        if (pickerVisible) {
-            findViewById<LinearLayout>(R.id.picker_layout).visibility = View.VISIBLE
+        } else if (pickerVisible) {
             findViewById<LinearLayout>(R.id.main_counter_screen).visibility = View.INVISIBLE
+            findViewById<LinearLayout>(R.id.picker_layout).visibility = View.VISIBLE
         }
 
     }
 
-
-    // saving activity state on orientation change
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        if (alarmPlaying) {
-            alarm.stop()
-            timeLeftInMillis = wholeTimerValueInMillis
-            progressBar.progress = 100
-        }
-        outState.putBoolean("timerRunning", timerRunning)
-        outState.putLong("timeLeftInMillis", timeLeftInMillis)
-        outState.putLong("wholeTimerValueInMillis", wholeTimerValueInMillis)
-        outState.putInt("hourPicker", nPickerHour.value)
-        outState.putInt("minutePicker", nPickerMinute.value)
-        outState.putInt("secondPicker", nPickerSecond.value)
-        outState.putBoolean("mainContainerVisible", mainContainerVisible)
-        outState.putBoolean("pickerVisible", pickerVisible)
-        outState.putBoolean("alarmPlaying", alarmPlaying)
-        if (timerRunning) {
-            countDownTimer.cancel()
-            timerRunning = false
-        }
-
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu, menu)
+        return super.onCreateOptionsMenu(menu)
 
     }
 
-    // getting saved variables' values and giving them to corresponding variables, changing picker and main container visibilities
-    @RequiresApi(Build.VERSION_CODES.N)
-    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
-        super.onRestoreInstanceState(savedInstanceState)
-        timerRunning = savedInstanceState.getBoolean("timerRunning")
-        wholeTimerValueInMillis = savedInstanceState.getLong("wholeTimerValueInMillis")
-        timeLeftInMillis = savedInstanceState.getLong("timeLeftInMillis")
-        nPickerHour.value = savedInstanceState.getInt("hourPicker")
-        nPickerMinute.value = savedInstanceState.getInt("minutePicker")
-        nPickerSecond.value = savedInstanceState.getInt("secondPicker")
-        mainContainerVisible = savedInstanceState.getBoolean("mainContainerVisible")
-        alarmPlaying = savedInstanceState.getBoolean("alarmPlaying")
-        pickerVisible = savedInstanceState.getBoolean("pickerVisible")
-        updateCountDownText(timeLeftInMillis)
-
-        resetButton.visibility = View.VISIBLE
-
-        if (alarmPlaying) {
-            updateProgressBar()
-        }
-
-        if (timerRunning) {
-            startTimer()
-
-            startPauseButton.text = "PAUSE"
-            timerRunning = true
-        }
-        if (timeLeftInMillis == wholeTimerValueInMillis) {
-            resetButton.visibility = View.INVISIBLE
-        }
-        when (mainContainerVisible) {
-            true -> {
-                findViewById<LinearLayout>(R.id.main_counter_screen).visibility = View.VISIBLE
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.opt_about -> {
+                val intent = Intent(this, AboutActivity::class.java)
+                startActivity(intent)
             }
-            else -> findViewById<LinearLayout>(R.id.main_counter_screen).visibility = View.INVISIBLE
-
         }
-        when (pickerVisible) {
-            true -> {
-                findViewById<LinearLayout>(R.id.picker_layout).visibility = View.VISIBLE
-            }
-            else -> findViewById<LinearLayout>(R.id.picker_layout).visibility = View.INVISIBLE
-        }
-
+        return super.onOptionsItemSelected(item)
     }
-
 
 }
+
+
+
 
 
 

@@ -14,4 +14,7 @@
         <!-- Customize your theme here. -->
         <item name="android:navigationBarColor">#423c6a</item>
     </style>
+
+
+
 </resources>

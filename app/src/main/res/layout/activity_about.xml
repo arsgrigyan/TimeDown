@@ -11,7 +11,7 @@
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        app:theme="@style/ToolbarTheme" />
+         />
 
     <ImageView
         android:id="@+id/imageView"
@@ -46,7 +46,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:alpha="0.7"
-            android:text="Created with ❤️ by Arsen"
+            android:text="Created with 🤍 by Arsen"
             android:textColor="@color/white" />
 
         <TextView
@@ -55,7 +55,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:alpha="0.7"
-            android:text="08.12.2021"
+            android:text="19.12.2021"
             android:textColor="@color/white" />
     </LinearLayout>
 

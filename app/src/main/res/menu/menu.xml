@@ -4,6 +4,6 @@
 <item android:title="About"
     app:showAsAction="ifRoom"
     android:icon="@drawable/ic_info"
-    android:id="@+id/about"/>
+    android:id="@+id/opt_about"/>
 
 </menu>
