@@ -192,6 +192,7 @@ class MainActivity() : AppCompatActivity() {
         textViewCountDown.text = timeLeftFormatted
     }
 
+
     // method for updating progressbar's progress
     @RequiresApi(Build.VERSION_CODES.N)
     private fun updateProgressBar() {
@@ -342,9 +343,5 @@ class MainActivity() : AppCompatActivity() {
     }
 
 }
-
-
-
-
 
 
