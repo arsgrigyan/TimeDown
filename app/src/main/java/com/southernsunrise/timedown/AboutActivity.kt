@@ -3,8 +3,6 @@ package com.southernsunrise.timedown
 import android.content.pm.ActivityInfo
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.app.AppCompatDelegate
-import androidx.appcompat.view.SupportActionModeWrapper
 import androidx.appcompat.widget.Toolbar
 
 class AboutActivity : AppCompatActivity() {

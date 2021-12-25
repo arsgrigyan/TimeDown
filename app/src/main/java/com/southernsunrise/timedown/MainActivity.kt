@@ -1,6 +1,5 @@
 package com.southernsunrise.timedown
 
-import android.annotation.SuppressLint
 import android.app.AlarmManager
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -15,17 +14,13 @@ import android.os.CountDownTimer
 import android.widget.*
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import java.util.*
-import android.media.MediaPlayer
 import android.media.Ringtone
 import android.media.RingtoneManager
 import android.media.RingtoneManager.TYPE_ALARM
-import android.media.RingtoneManager.TYPE_NOTIFICATION
 import android.os.Build
 import android.view.*
-import androidx.annotation.RawRes
 import androidx.annotation.RequiresApi
-import androidx.core.view.isVisible
-import kotlin.concurrent.timer
+
 
 
 class MainActivity : AppCompatActivity() {
@@ -246,7 +241,6 @@ class MainActivity : AppCompatActivity() {
     private fun startTimer() {
 
         countDownTimer = object : CountDownTimer(timeLeftInMillis, 1000) {
-
 
             @RequiresApi(Build.VERSION_CODES.N)
             override fun onTick(millisUntilFinished: Long) {
