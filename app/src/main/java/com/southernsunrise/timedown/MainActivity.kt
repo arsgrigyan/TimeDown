@@ -191,7 +191,6 @@ class MainActivity : AppCompatActivity() {
 
         }
 
-    }
 
     // method for setting alarm to get notification when countDownTimer is finished
     private fun setAlarm() {
@@ -356,9 +355,5 @@ class MainActivity : AppCompatActivity() {
     }
 
 }
-
-
-
-
 
 
