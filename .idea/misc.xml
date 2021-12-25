@@ -5,6 +5,7 @@
       <map>
         <entry key="app/src/main/res/drawable/button_background.xml" value="0.3640625" />
         <entry key="app/src/main/res/drawable/ic_check.xml" value="0.3640625" />
+        <entry key="app/src/main/res/drawable/ic_settings.xml" value="0.3640625" />
         <entry key="app/src/main/res/drawable/progressbar_background.xml" value="0.32407407407407407" />
         <entry key="app/src/main/res/layout-land/activity_about.xml" value="0.25" />
         <entry key="app/src/main/res/layout-land/activity_main.xml" value="0.20208333333333334" />

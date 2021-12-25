@@ -13,6 +13,7 @@
         <item name="android:statusBarColor" tools:targetApi="l">#423c6a</item>
         <!-- Customize your theme here. -->
         <item name="android:navigationBarColor">#423c6a</item>
+        <item name="android:forceDarkAllowed" tools:targetApi = "q">false</item>
     </style>
     <style name="NumberPickerTheme" parent="Theme.TimeDown">
         <item name="colorControlNormal">@color/dividerColor</item>
